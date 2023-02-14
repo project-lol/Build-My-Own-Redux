@@ -20,3 +20,26 @@
 - action은 type이라는 필수적인 property를 가지고 있어야 한다. 이것은 action의 이름이다.
 
 <br>
+
+### 리덕스의 세 번째 원칙
+
+- 리덕스는 순수함수로 이루어져있다
+- 리덕스에서 상태를 변경할 때는 이전의 상태를 그대로 받고, 그것을 기반으로 하여 새로운 상태를 만든다. 그리고 이전의 상태에 대한 참조를 유지한다.
+- 이런 순수함수를 우리는 reducer라고 부른다.
+
+### reducer 만들어보기
+
+- reducer는 이전의 상태와 action을 받아서 새로운 상태를 만들어내는 함수이다.
+- reducer는 만약 undefined에 해당하는 initial state를 받을 경우 initial state를 반환한다는 원칙을 가지고 있다.
+
+```js
+const counter(state = 0, action) => {
+  if (action.type === "INCREMENT") {
+    return state + 1
+  } else if (action.type === "DECREMENT") {
+    return state - 1
+  } else {
+    return state
+  }
+}
+```
