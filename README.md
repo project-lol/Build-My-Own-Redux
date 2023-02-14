@@ -1,4 +1,4 @@
-# Build My Own Redux
+# Build My Own State Management Library
 
 > 상태관리 라이브러리를 직접 만들어보며 동작원리를 깊이 있게 이해해보기 위한 프로젝트입니다.
 
@@ -130,6 +130,58 @@ self.state = new Proxy(params.state || {}, {
 - 이 set이 의미하는 것은 `state.name = "Foo"`와 같은 일이 일어날 때마다, 이 trap이 이런 행위를 캐치할 수 있고, 이런 동작과 함께 무언가를 실행할 수 있게 해준다는 것이다.
 - 우리의 코드의 경우에는 state를 변경시키고 그것을 로깅하고 있다. 그리고 우리가 만든 PubSub 객체를 이용해서, stateChange 이벤트를 발생시키고 있다. 아마 이벤트를 구독하는 모든 구독자들이 이 stateChange 이벤트를 받아서, 그것을 처리할 것이다.
 - 그 다음으로 status를 확인하는데, 만약 status가 mutation이 아니라면, 우리는 이것을 경고하고 있다. 만약 status가 mutation이 아니라면, state가 수동으로 업데이트 되고 있는 중일 것이다. 그래서 우리는 이것을 경고하고 있다.
+
+<br>
+
+### Dispatch and commit
+
+- dispatch와 commit은 store 객체의 메서드이다. dispatch는 action을 실행시키는 메서드이고, commit은 mutation을 실행시키는 메서드이다.
+
+```js
+  dispatch(actionKey, payload) {
+    let self = this
+
+    if (typeof self.actions[actionKey] !== "function") {
+      console.error(`Action "${actionKey} doesn't exist`)
+      return false
+    }
+
+    console.groupCollapsed(`ACTION: ${actionKey}`)
+
+    self.status = "action"
+
+    self.actions[actionKey](self, payload)
+
+    console.groupEnd()
+
+    return true
+  }
+```
+
+- dispatch는 actionKey와 payload를 인자로 받는다. 만약 actionKey에 해당하는 action이 없다면, 에러를 발생시키고 false를 반환한다. 그렇지 않다면, action을 실행시키는 동시에 로그를 출력하고, status를 action으로 변경한다.
+
+```js
+  commit(mutationKey, payload) {
+    let self = this
+
+    if (typeof self.mutations[mutationKey] !== "function") {
+      console.log(`Mutation "${mutationKey}" doesn't exist`)
+      return false
+    }
+
+    self.status = "mutation"
+
+    let newState = self.mutations[mutationKey](self.state, payload)
+
+    self.state = Object.assign(self.state, newState)
+
+    return true
+  }
+```
+
+- commit은 mutationKey와 payload를 인자로 받는다. 만약 mutationKey에 해당하는 mutation이 없다면, 에러를 발생시키고 false를 반환한다. 그렇지 않다면 status를 mutation으로 변경한다. 그리고 mutation이 반환하는 새로운 state를 기존의 state와 합쳐서 새로운 state를 만든다.
+
+<br>
 
 ### 리덕스의 첫 번째 원칙
 
