@@ -64,3 +64,37 @@ render()
 ```
 
 <br>
+
+### make store from scratch
+
+- store를 만들기 위해서는 reducer를 인자로 받아야한다.
+- store는 상태를 저장하고 있어야하고, 상태를 변경할 수 있어야한다.
+- store는 상태가 변경될 때마다 listener를 호출해야한다.
+- store는 상태를 변경할 때마다 새로운 상태를 만들어야한다.
+- dispatch를 호출할 때마다 reducer를 호출해야한다.
+- reducer는 이전의 상태와 action을 받아서 새로운 상태를 만들어내는 함수이다.
+
+```js
+const createStore = reducer => {
+  let state
+  let listeners = []
+
+  const getState = () => state
+
+  const dispatch = action => {
+    state = reducer(state, action)
+    listeners.forEach(listener => listener())
+  }
+
+  const subscribe = listener => {
+    listeners.push(listener)
+    return () => {
+      listeners = listeners.filter(l => l !== listener)
+    }
+  }
+
+  dispatch({})
+
+  return { getState, dispatch, subscribe }
+}
+```
