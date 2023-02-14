@@ -4,6 +4,50 @@
 
 ## What I Learned
 
+<br>
+
+### Publish / Subscribe Pattern
+
+- 이벤트를 발생시키는 객체와 이벤트를 처리하는 객체가 서로를 모르는 상태에서도 이벤트를 처리할 수 있도록 하는 패턴
+- 이 패턴을 이해하기 위해 일상생활의 예로 들면, 레스토랑에 갔을 때 요리사는 손님을 모른다. 그런데 손님이 주문을 하면 알 수 있는 이유는 손님이 주문을 했다는 알림을 받을 수 있기 때문이다. 이것이 바로 Publish / Subscribe 패턴이다.
+- Pub/Sub 패턴은 모든 구독자를 순회한 다면 그들이 보낸 payload와 함께 콜백을 호출한다. 이렇게 함으로써 우아하고 반응적인 흐름을 만들 수 있다.
+
+```js
+export default class PubSub {
+  constructor() {
+    this.events = {}
+  }
+}
+```
+
+- 이벤트를 저장할 events 객체를 생성한다.
+
+```js
+  subscribe(event, callback) {
+    let self = this
+    if (!self.events.hasOwnProperty(event)) {
+      self.events[event] = []
+    }
+
+    return self.events[event].push(callback)
+  }
+```
+
+- subscribe 메서드는 이벤트를 구독하는 메서드이다. 이벤트가 없다면 빈 배열을 생성하고, 이벤트가 있다면 해당 이벤트에 콜백을 추가한다.
+
+```js
+  publish(event, data = {}) {
+    let self = this
+    if (!self.events.hasOwnProperty(event)) {
+      return []
+    }
+
+    return self.events[event].map(callback => callback(data))
+  }
+```
+
+- publish 메서드는 이벤트를 발생시키는 메서드이다. 이벤트가 없다면 빈 배열을 반환하고, 이벤트가 있다면 해당 이벤트에 콜백을 실행한다.
+
 ### 리덕스의 첫 번째 원칙
 
 - 리덕스의 한 가지 중요한 원칙은 우리가 만드는 어플리케이션이 복잡하든 단순하든 그것이 다루는 상태를 단 하나의 객체로 표현한다는 것이다. 모든 변경사항이 리덕스에서는 매우 명확하게 표현된다. 때문에 변경 사항을 추적하는 것이 매우 쉽다. 어떤 변경사항이든 항상 하나의 객체에서 저장하고 있다는 것, 이것이 가장 중요한 리덕스의 원칙이다.
