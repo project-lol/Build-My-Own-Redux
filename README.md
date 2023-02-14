@@ -205,7 +205,6 @@ class Component {
 }
 ```
 
--
 - Component는 store를 구독하고 있다. 그리고 store의 state가 변경되면, render 메서드를 실행시킨다. 그리고 render 메서드는 각각의 컴포넌트에서 정의할 것이다.
 
 ### 리덕스의 첫 번째 원칙
