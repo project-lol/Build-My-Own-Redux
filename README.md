@@ -48,6 +48,89 @@ export default class PubSub {
 
 - publish 메서드는 이벤트를 발생시키는 메서드이다. 이벤트가 없다면 빈 배열을 반환하고, 이벤트가 있다면 해당 이벤트에 콜백을 실행한다.
 
+<br>
+
+### Store
+
+- Store는 애플리케이션의 상태를 저장하고, 상태를 변경하는 방법을 제공한다.
+
+```js
+export default class Store {
+  constructor(params) {
+    let self = this
+    selt.action = {}
+    self.mutations = {}
+    self.state = {}
+    self.status = "resting"
+    self.events = new PubSub()
+
+    if (params.hasOwnProperty("actions")) {
+      self.actions = params.actions
+    }
+
+    if (params.hasOwnProperty("mutations")) {
+      self.mutations = params.mutations
+    }
+  }
+}
+```
+
+- Store는 action, mutation, state, status, events를 가지고 있다.
+
+<br>
+
+### [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) 란 무엇인가
+
+- Proxy는 ES6에서 추가된 기능으로, 객체의 기본 동작을 재정의할 수 있게 해준다.
+- Proxy는 2개의 인자를 받는데, 첫 번째 인자는 target 객체이고, 두 번째 인자는 handler 객체이다. handler 객체는 target 객체의 기본 동작을 재정의할 수 있는 메서드를 가지고 있다.
+
+```js
+const target = {
+  name: "Lee",
+  age: 20,
+}
+
+const handler = {
+  get(target, prop) {
+    console.log(`Accessed property : ${[prop]}`)
+    return targer[prop]
+  },
+}
+
+const myProxy = new Proxy(target, handler)
+console.log(myProxy.name)
+// Accessed property : Lee
+// Lee
+```
+
+- 우리는 이 Proxy를 이용해서, store객체가 변경사항을 추적할 수 있도록 할 것이다.
+- Proxy는 state 객체를 대신해서 특정한 역할을 수행할 것이다. get trap을 넣어서, 매번 state 객체에 데이터가 요청될 때마다 이것을 모니터링 할 것이다.
+- 마찬가지로 set trap을 넣어서, state 객체에 데이터가 변경될 때마다 이것을 모니터링 할 것이다.
+
+```js
+self.state = new Proxy(params.state || {}, {
+  set: function (state, key, value) {
+    state[key] = value
+
+    console.log(`stateChange: ${key}: ${value}`)
+
+    self.events.publish("stateChange", self.state)
+
+    if (self.status !== "mutation") {
+      console.warn(`You should use a mutation to set ${key}`)
+    }
+
+    self.status = "resting"
+
+    return true
+  },
+})
+```
+
+- 이 set이 의미하는 것은 `state.name = "Foo"`와 같은 일이 일어날 때마다, 이 trap이 이런 행위를 캐치할 수 있고, 이런 동작과 함께 무언가를 실행할 수 있게 해준다는 것이다.
+- 우리의 코드의 경우에는 state를 변경시키고 그것을 로깅하고 있다. 그리고 우리가 만든 PubSub 객체를 이용해서, stateChange 이벤트를 발생시키고 있다. 아마 이벤트를 구독하는 모든 구독자들이 이 stateChange 이벤트를 받아서, 그것을 처리할 것이다.
+- 그 다음으로 status를 확인하는데, 만약 status가 mutation이 아니라면, 우리는 이것을 경고하고 있다. 만약 status가 mutation이 아니라면, state가 수동으로 업데이트 되고 있는 중일 것이다. 그래서 우리는 이것을 경고하고 있다.
+
 ### 리덕스의 첫 번째 원칙
 
 - 리덕스의 한 가지 중요한 원칙은 우리가 만드는 어플리케이션이 복잡하든 단순하든 그것이 다루는 상태를 단 하나의 객체로 표현한다는 것이다. 모든 변경사항이 리덕스에서는 매우 명확하게 표현된다. 때문에 변경 사항을 추적하는 것이 매우 쉽다. 어떤 변경사항이든 항상 하나의 객체에서 저장하고 있다는 것, 이것이 가장 중요한 리덕스의 원칙이다.
