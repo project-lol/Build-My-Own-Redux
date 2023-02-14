@@ -43,3 +43,24 @@ const counter(state = 0, action) => {
   }
 }
 ```
+
+<br>
+
+### store의 메서드
+
+- 우리가 store를 만들 때는 reducer를 인자로 넘겨줘야한다. 이 reducer를 통해서 어떻게 상태를 변경할지 정의한다.
+- store는 3가지 중요한 메서드를 가지고 있다.
+  - getState() : 현재의 상태를 반환한다.
+  - dispatch(action) : action을 dispatch한다.
+  - subscribe(listener) : 상태가 변경될 때마다 호출되는 listener를 등록한다.
+
+```js
+const render = () => {
+  document.body.innerText = store.getState()
+}
+
+store.subscribe(render)
+render()
+```
+
+<br>
